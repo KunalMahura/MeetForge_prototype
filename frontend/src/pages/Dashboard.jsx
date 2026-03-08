@@ -13,46 +13,62 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="flex justify-between items-center p-6 bg-white shadow-sm">
-        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-          MeetForge
-        </h1>
-        <UserButton afterSignOutUrl="/" />
-      </header>
+    <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/10 blur-[120px]" />
+        <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px]" />
+        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px]" />
+      </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-8">
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Welcome to your Dashboard</h2>
-          <p className="text-gray-500 mb-8">
-            Create a new 1-on-1 interview session or view your past interviews below.
-          </p>
-          
-          <button
-            onClick={handleCreateRoom}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <Video className="w-5 h-5 mr-2" />
-            Start New Interview
-          </button>
-        </section>
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <header className="flex justify-between items-center p-6 lg:px-12 bg-black/50 backdrop-blur-md border-b border-white/5 sticky top-0">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+            MeetForge
+          </h1>
+          <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-10 h-10 border border-white/10" } }} />
+        </header>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Upcoming Sessions</h3>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <p className="text-gray-500 italic text-sm">No upcoming sessions right now.</p>
-            </div>
+        <main className="flex-1 max-w-7xl w-full mx-auto p-8 lg:p-12">
+          <section className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-8 md:p-12 text-center max-w-3xl mx-auto backdrop-blur-sm shadow-2xl mb-16 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <h2 className="text-4xl font-extrabold text-white mb-4 tracking-tight">Welcome to your Dashboard</h2>
+            <p className="text-lg text-white/60 mb-10">
+              Create a new 1-on-1 interview session or view your past interviews below.
+            </p>
+            
+            <button
+              onClick={handleCreateRoom}
+              className="group inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-[0_0_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-indigo-500"
+            >
+              <Video className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+              Start New Interview
+            </button>
           </section>
 
-          <section>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Past Interviews</h3>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <p className="text-gray-500 italic text-sm">You have not completed any interviews yet.</p>
-            </div>
-          </section>
-        </div>
-      </main>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+            <section className="flex flex-col">
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse-slow"></span>
+                Upcoming Sessions
+              </h3>
+              <div className="flex-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 hover:bg-white/[0.04] transition-colors flex items-center justify-center">
+                <p className="text-white/40 italic text-center">No upcoming sessions right now.</p>
+              </div>
+            </section>
+
+            <section className="flex flex-col">
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                Past Interviews
+              </h3>
+              <div className="flex-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 hover:bg-white/[0.04] transition-colors flex items-center justify-center">
+                <p className="text-white/40 italic text-center">You have not completed any interviews yet.</p>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
