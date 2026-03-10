@@ -7,17 +7,17 @@ const Home = () => {
     <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/20 blur-[120px]" />
-        <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/20 blur-[120px]" />
-        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-blue-600/20 blur-[120px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-theme-red/20 blur-[120px]" />
+        <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-theme-orange/20 blur-[120px]" />
+        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-theme-yellow/20 blur-[120px]" />
       </div>
 
       <div className="relative z-10">
         {/* Navbar */}
         <nav className="flex justify-between items-center p-6 lg:px-12 bg-black/50 backdrop-blur-md border-b border-white/5 sticky top-0">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
-              <Code2 className="w-6 h-6 text-indigo-400" />
+            <div className="p-2 rounded-xl bg-theme-red/20 border border-theme-red/30">
+              <Code2 className="w-6 h-6 text-theme-red" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
               MeetForge
@@ -40,7 +40,7 @@ const Home = () => {
         {/* Hero Section */}
         <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-theme-orange animate-pulse"></span>
             <span className="text-sm font-medium text-white/80">
               Next-Gen Tech Interviews
             </span>
@@ -48,7 +48,7 @@ const Home = () => {
 
           <h1 className="text-5xl lg:text-7xl font-bold tracking-tight mb-8">
             The Ultimate Platform for <br className="hidden lg:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 animate-gradient-x">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-theme-red via-theme-orange to-theme-yellow animate-gradient-x">
               Technical Interviews
             </span>
           </h1>
@@ -59,7 +59,7 @@ const Home = () => {
 
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <SignUpButton mode="modal">
-              <button className="group flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(79,70,229,0.3)]">
+              <button className="group flex items-center justify-center gap-2 px-8 py-4 bg-theme-red hover:bg-[#A31616] text-white rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(191,26,26,0.5)]">
                 Start Interviewing Now
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -75,17 +75,17 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 text-left">
             {[
               {
-                icon: <Code2 className="w-6 h-6 text-indigo-400" />,
+                icon: <Code2 className="w-6 h-6 text-theme-red" />,
                 title: "Live Code Editor",
                 desc: "Collaborative Monaco editor with syntax highlighting and auto-completion.",
               },
               {
-                icon: <Video className="w-6 h-6 text-purple-400" />,
+                icon: <Video className="w-6 h-6 text-theme-orange" />,
                 title: "Crystal Clear Video",
                 desc: "Integrated WebRTC video calls powered by Stream for seamless communication.",
               },
               {
-                icon: <Users className="w-6 h-6 text-blue-400" />,
+                icon: <Users className="w-6 h-6 text-theme-yellow" />,
                 title: "1-on-1 Enforced",
                 desc: "Secure interview rooms strictly limited to one interviewer and one candidate.",
               },

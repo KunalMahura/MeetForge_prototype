@@ -1,76 +1,72 @@
-// Integrates with Judge0 API to run code
+import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import { promisify } from 'util';
+import crypto from 'crypto';
+
+const execAsync = promisify(exec);
+
+// Integrates with local system to run code
 export const executeCode = async (req, res) => {
-  const { source_code, language_id } = req.body;
+  const { source_code, language } = req.body;
 
-  if (!source_code || !language_id) {
-    return res.status(400).json({ error: 'Source code and language_id are required' });
+  if (!source_code || !language) {
+    return res.status(400).json({ error: 'Source code and language are required' });
   }
 
-  const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
-
-  if (!JUDGE0_API_KEY) {
-    return res.status(500).json({ error: 'Server misconfiguration: Missing JUDGE0_API_KEY' });
+  // Determine file extension and command based on language
+  let ext = '';
+  let cmdPrefix = '';
+  const runtimeLanguage = language.toLowerCase();
+  
+  if (runtimeLanguage === 'javascript' || runtimeLanguage === 'js') {
+    ext = 'js';
+    cmdPrefix = 'node';
+  } else if (runtimeLanguage === 'python' || runtimeLanguage === 'py') {
+    ext = 'py';
+    cmdPrefix = 'python'; // Might need to be 'python3' on some systems
+  } else if (runtimeLanguage === 'java') {
+    ext = 'java';
+    // Java requires the file name to match the public class name, 
+    // but for simple scripts we can use Java 11+ single-file source-code programs feature.
+    cmdPrefix = 'java'; 
+  } else {
+     return res.status(400).json({ error: 'Unsupported language' });
   }
 
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-RapidAPI-Key': JUDGE0_API_KEY,
-      'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
-    },
-    body: JSON.stringify({
-      language_id: language_id,
-      source_code: source_code,
-      stdin: ''
-    })
-  };
+  // Create a temporary file
+  const tempDir = os.tmpdir();
+  const fileId = crypto.randomBytes(8).toString('hex');
+  const filename = runtimeLanguage === 'java' ? 'Main.java' : `script_${fileId}.${ext}`;
+  
+  // For Java, it's safer to create a unique directory since the filename must be Main.java
+  const workDir = path.join(tempDir, `exec_${fileId}`);
+  const filePath = path.join(workDir, filename);
 
   try {
-    // 1. Submit Code for Execution
-    const submitResponse = await fetch('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&fields=*', options);
-    const submitData = await submitResponse.json();
-
-    if (!submitResponse.ok) {
-      return res.status(submitResponse.status).json({ error: submitData.message || 'Error submitting code to Judge0' });
+    // Ensure working directory exists
+    if (!fs.existsSync(workDir)){
+      fs.mkdirSync(workDir, { recursive: true });
     }
 
-    const { token } = submitData;
+    // Write source code to file
+    fs.writeFileSync(filePath, source_code);
 
-    // 2. Poll for Results
-    let resultData;
-    let isProcessing = true;
-    let attempts = 0;
-    const MAX_ATTEMPTS = 15; // 15 seconds max
+    // Execute the code
+    // We add a timeout of 10 seconds to prevent infinite loops
+    const command = `${cmdPrefix} "${filePath}"`;
+    const { stdout, stderr } = await execAsync(command, { timeout: 10000, cwd: workDir });
 
-    while (isProcessing && attempts < MAX_ATTEMPTS) {
-      // Wait 1 second before polling
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const pollResponse = await fetch(`https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=*`, {
-        method: 'GET',
-        headers: {
-          'X-RapidAPI-Key': JUDGE0_API_KEY,
-          'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
-        }
-      });
-      
-      resultData = await pollResponse.json();
-      
-      // Status ID 1 = In Queue, 2 = Processing. Any other status means it's done.
-      if (resultData.status?.id !== 1 && resultData.status?.id !== 2) {
-        isProcessing = false;
-      }
-      attempts++;
+    // Format result backwards compatible with existing frontend logic
+    let outputString = stdout;
+    if (stderr) {
+       outputString += `\nError Output:\n${stderr}`;
     }
-
-    if (isProcessing) {
-      return res.status(408).json({ error: 'Execution payload timed out. Try again.' });
+    
+    if (!outputString.trim()) {
+        outputString = 'Execution finished without output.';
     }
-
-    // 3. Format result backwards compatible with existing frontend logic
-    // Judge0 provides stdout (normal output), stderr (errors), compile_output (compilation errors), or message
-    let outputString = resultData.stdout || resultData.stderr || resultData.compile_output || resultData.message || 'Execution finished without output.';
 
     res.status(200).json({
       run: {
@@ -79,7 +75,33 @@ export const executeCode = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Judge0 Code execution error:', error);
-    res.status(500).json({ error: 'Failed to communicate with code runner backend' });
+    // If the error comes from execAsync (like syntax error or timeout), it has stdout/stderr properties
+    if (error.stdout || error.stderr) {
+         let errorOutput = '';
+         if (error.stdout) errorOutput += error.stdout + '\n';
+         if (error.stderr) errorOutput += error.stderr;
+         
+         if (error.killed) {
+             errorOutput += '\nExecution timed out (10 seconds limit).';
+         }
+
+         return res.status(200).json({
+            run: {
+              output: errorOutput || 'Execution failed.'
+            }
+         });
+    }
+    
+    console.error('Local Code execution error:', error);
+    res.status(500).json({ error: 'Failed to execute code locally' });
+  } finally {
+     // Cleanup: delete the working directory and its contents
+     try {
+       if (fs.existsSync(workDir)) {
+          fs.rmSync(workDir, { recursive: true, force: true });
+       }
+     } catch (cleanupError) {
+         console.error('Failed to cleanup temp files:', cleanupError);
+     }
   }
 };

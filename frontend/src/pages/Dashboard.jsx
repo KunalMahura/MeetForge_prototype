@@ -16,9 +16,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/10 blur-[120px]" />
-        <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px]" />
-        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-theme-red/10 blur-[120px]" />
+        <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-theme-orange/10 blur-[120px]" />
+        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-theme-yellow/10 blur-[120px]" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -39,7 +39,7 @@ export default function Dashboard() {
             
             <button
               onClick={handleCreateRoom}
-              className="group inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-[0_0_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-indigo-500"
+              className="group inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-xl text-white bg-theme-red hover:bg-[#A31616] transition-all shadow-[0_0_40px_rgba(191,26,26,0.3)] hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-navy focus:ring-theme-red"
             >
               <Video className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
               Start New Interview
@@ -49,7 +49,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
             <section className="flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse-slow"></span>
+                <span className="w-2 h-2 rounded-full bg-theme-orange animate-pulse-slow"></span>
                 Upcoming Sessions
               </h3>
               <div className="flex-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 hover:bg-white/[0.04] transition-colors flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function Dashboard() {
 
             <section className="flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span className="w-2 h-2 rounded-full bg-theme-yellow"></span>
                 Past Interviews
               </h3>
               <div className="flex-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 hover:bg-white/[0.04] transition-colors flex items-center justify-center">

@@ -14,11 +14,11 @@ export default function InterviewRoom() {
   const handleRunCode = async () => {
     setIsRunning(true);
     try {
-      const language_id = document.getElementById("language-select").value;
+      const language = document.getElementById("language-select").value;
       const response = await fetch('http://localhost:5000/api/code/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source_code: code, language_id: parseInt(language_id) })
+        body: JSON.stringify({ source_code: code, language })
       });
       const data = await response.json();
       setOutput(data.run?.output || data.compile?.output || data.error || 'Execution finished without output.');
@@ -33,8 +33,8 @@ export default function InterviewRoom() {
     <div className="h-screen flex flex-col bg-black overflow-hidden text-white relative selection:bg-indigo-500/30">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/5 blur-[120px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-theme-red/5 blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-theme-orange/5 blur-[120px]" />
       </div>
 
       <div className="relative z-10 flex flex-col h-full">
@@ -85,15 +85,15 @@ export default function InterviewRoom() {
           <div className="flex-1 flex flex-col bg-black">
             {/* Editor Header */}
             <div className="bg-white/[0.02] border-b border-white/5 px-4 py-2 flex justify-between items-center backdrop-blur-sm">
-              <select id="language-select" className="bg-white/5 text-white/80 text-sm border border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                <option value="93" className="bg-black">JavaScript (Node.js 18)</option>
-                <option value="71" className="bg-black">Python (3.11)</option>
-                <option value="62" className="bg-black">Java (13)</option>
+              <select id="language-select" className="bg-white/5 text-white/80 text-sm border border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-theme-red">
+                <option value="javascript" className="bg-black">JavaScript (Node.js)</option>
+                <option value="python" className="bg-black">Python (3)</option>
+                <option value="java" className="bg-black">Java</option>
               </select>
               <button 
                 onClick={handleRunCode}
                 disabled={isRunning}
-                className="flex items-center px-4 py-1.5 bg-indigo-600/20 text-indigo-400 text-sm font-medium rounded-lg border border-indigo-500/30 hover:bg-indigo-600/30 transition disabled:opacity-50"
+                className="flex items-center px-4 py-1.5 bg-theme-red/20 text-theme-red text-sm font-medium rounded-lg border border-theme-red/30 hover:bg-theme-red/30 transition disabled:opacity-50"
               >
                 {isRunning ? 'Running...' : <><Play className="w-4 h-4 mr-1" /> Run Code</>}
               </button>
@@ -119,7 +119,7 @@ export default function InterviewRoom() {
             {/* Terminal/Output window */}
             <div className="h-1/3 min-h-[150px] bg-[#0d0d0d] border-t border-white/5 p-4 font-mono shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
               <div className="flex items-center mb-3">
-                <div className="text-indigo-400/80 text-xs uppercase tracking-wider font-bold">Output Console</div>
+                <div className="text-theme-yellow/80 text-xs uppercase tracking-wider font-bold">Output Console</div>
               </div>
               <pre className="text-white/70 text-sm whitespace-pre-wrap">{output || 'Code output will appear here...'}</pre>
             </div>
