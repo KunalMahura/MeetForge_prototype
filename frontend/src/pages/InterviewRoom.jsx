@@ -15,7 +15,8 @@ export default function InterviewRoom() {
     setIsRunning(true);
     try {
       const language = document.getElementById("language-select").value;
-      const response = await fetch('http://localhost:5000/api/code/execute', {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const response = await fetch(`${backendUrl}/api/code/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ source_code: code, language })
@@ -41,7 +42,7 @@ export default function InterviewRoom() {
         {/* Header */}
         <header className="flex justify-between items-center p-4 bg-white/[0.02] backdrop-blur-md border-b border-white/5">
           <div className="flex items-center space-x-4">
-            <button 
+            <button
               onClick={() => navigate('/')}
               className="p-2 hover:bg-white/10 rounded-md transition text-white/60 hover:text-white"
             >
@@ -90,7 +91,7 @@ export default function InterviewRoom() {
                 <option value="python" className="bg-black">Python (3)</option>
                 <option value="java" className="bg-black">Java</option>
               </select>
-              <button 
+              <button
                 onClick={handleRunCode}
                 disabled={isRunning}
                 className="flex items-center px-4 py-1.5 bg-theme-red/20 text-theme-red text-sm font-medium rounded-lg border border-theme-red/30 hover:bg-theme-red/30 transition disabled:opacity-50"

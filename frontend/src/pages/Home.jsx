@@ -14,15 +14,24 @@ const Home = () => {
 
       <div className="relative z-10">
         {/* Navbar */}
-        <nav className="flex justify-between items-center p-6 lg:px-12 bg-black/50 backdrop-blur-md border-b border-white/5 sticky top-0">
+        <nav className="relative flex justify-between items-center p-6 lg:px-12 bg-black/50 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-theme-red/20 border border-theme-red/30">
               <Code2 className="w-6 h-6 text-theme-red" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+            {/* Title for small screens */}
+            <span className="md:hidden text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
               MeetForge
             </span>
           </div>
+
+          {/* Centered Title */}
+          <div className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+              MeetForge
+            </span>
+          </div>
+
           <div className="flex gap-4">
             <SignInButton mode="modal">
               <button className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors">
