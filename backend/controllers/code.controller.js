@@ -30,7 +30,8 @@ export const executeCode = async (req, res) => {
     ext = 'java';
     // Java requires the file name to match the public class name, 
     // but for simple scripts we can use Java 11+ single-file source-code programs feature.
-    cmdPrefix = 'java'; 
+    const expectedJavaPath = 'C:\\Program Files\\Microsoft\\jdk-17.0.18.8-hotspot\\bin\\java.exe';
+    cmdPrefix = fs.existsSync(expectedJavaPath) ? `"${expectedJavaPath}"` : 'java'; 
   } else {
      return res.status(400).json({ error: 'Unsupported language' });
   }

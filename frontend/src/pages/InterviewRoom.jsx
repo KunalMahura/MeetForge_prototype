@@ -7,6 +7,7 @@ export default function InterviewRoom() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const [code, setCode] = useState('// Write your solution here...');
+  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
 
@@ -14,7 +15,7 @@ export default function InterviewRoom() {
   const handleRunCode = async () => {
     setIsRunning(true);
     try {
-      const language = document.getElementById("language-select").value;
+      const language = selectedLanguage;
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
       const response = await fetch(`${backendUrl}/api/code/execute`, {
         method: 'POST',
@@ -86,7 +87,12 @@ export default function InterviewRoom() {
           <div className="flex-1 flex flex-col bg-black">
             {/* Editor Header */}
             <div className="bg-white/[0.02] border-b border-white/5 px-4 py-2 flex justify-between items-center backdrop-blur-sm">
-              <select id="language-select" className="bg-white/5 text-white/80 text-sm border border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-theme-red">
+              <select 
+                id="language-select" 
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="bg-white/5 text-white/80 text-sm border border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-theme-red"
+              >
                 <option value="javascript" className="bg-black">JavaScript (Node.js)</option>
                 <option value="python" className="bg-black">Python (3)</option>
                 <option value="java" className="bg-black">Java</option>
@@ -105,7 +111,7 @@ export default function InterviewRoom() {
               <Editor
                 height="100%"
                 theme="vs-dark"
-                language="javascript"
+                language={selectedLanguage}
                 value={code}
                 onChange={(value) => setCode(value || '')}
                 options={{
