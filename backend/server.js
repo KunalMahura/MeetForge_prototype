@@ -19,14 +19,10 @@ if (process.env.MONGODB_URI && process.env.MONGODB_URI !== 'your_mongodb_connect
   connectDB();
 }
 
-app.use(cors());
-
-
-app.use('/api/webhooks', webhookRoutes);
-
-
+app.use(cors()); // Allow all origins for local development
 app.use(express.json());
 
+app.use('/api/webhooks', webhookRoutes);
 app.use('/api/code', codeRoutes);
 
 app.use(
