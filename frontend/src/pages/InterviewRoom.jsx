@@ -16,7 +16,7 @@ export default function InterviewRoom() {
     setIsRunning(true);
     try {
       const language = selectedLanguage;
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
       const response = await fetch(`${backendUrl}/api/code/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

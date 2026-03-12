@@ -10,7 +10,6 @@ const execAsync = promisify(exec);
 // Integrates with local system to run code
 export const executeCode = async (req, res) => {
   const { source_code, language } = req.body;
-  console.log(`[DEBUG] Received code execution request for language: ${language}`);
 
   if (!source_code || !language) {
     return res.status(400).json({ error: 'Source code and language are required' });
