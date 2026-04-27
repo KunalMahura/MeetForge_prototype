@@ -7,14 +7,51 @@ import connectDB from './config/db.js';
 // Routes
 import webhookRoutes from './routes/webhook.routes.js';
 import codeRoutes from './routes/code.routes.js';
+import interviewRoutes from './routes/interview.routes.js';
 
 // Inngest
 import { inngest } from './jobs/inngest/client.js';
 import { cleanupOrphanedInterviews } from './jobs/inngest/functions.js';
 
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*', // In production, replace with actual frontend URL
+    methods: ['GET', 'POST']
+  }
+});
+
+// Socket.io connection logic
+io.on('connection', (socket) => {
+  console.log('A user connected via Socket.io:', socket.id);
+
+  // Join a specific interview room
+  socket.on('join-room', (roomId) => {
+    socket.join(roomId);
+    console.log(`Socket ${socket.id} joined room ${roomId}`);
+  });
+
+  // Handle code changes from Monaco editor
+  socket.on('code-change', ({ roomId, code }) => {
+    // Broadcast code to everyone else in the room
+    socket.to(roomId).emit('receive-code-change', code);
+  });
+
+  // Handle code execution output
+  socket.on('code-output', ({ roomId, output }) => {
+    socket.to(roomId).emit('receive-code-output', output);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
@@ -35,6 +72,7 @@ app.use(express.json());
 
 // Main API Routes
 app.use('/api/code', codeRoutes);
+app.use('/api/interviews', interviewRoutes);
 
 // Inngest route for background jobs integration
 app.use(
@@ -49,6 +87,6 @@ app.get('/', (req, res) => {
   res.send('MeetForge API is running...');
 });
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
