@@ -43,7 +43,7 @@ export default function InterviewRoom() {
 
     const setupRoom = async () => {
       try {
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
         
         // 1. Join room and check access
         setLoadingStep('Joining room on backend...');
@@ -106,7 +106,7 @@ export default function InterviewRoom() {
 
         // 5. Setup Socket.io
         setLoadingStep('Connecting WebSocket...');
-        newSocket = io(backendUrl);
+        newSocket = io(window.location.origin, { path: '/socket.io' });
         newSocket.emit('join-room', roomId);
         
         newSocket.on('receive-code-change', (newCode) => {

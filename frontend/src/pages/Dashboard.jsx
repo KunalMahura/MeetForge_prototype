@@ -17,7 +17,7 @@ export default function Dashboard() {
     const fetchInterviews = async () => {
       if (!userId) return;
       try {
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
         const res = await fetch(`${backendUrl}/api/interviews?userId=${userId}`);
         const data = await res.json();
         if (data.success) {
@@ -36,7 +36,7 @@ export default function Dashboard() {
     if (!userId) return;
     setIsCreating(true);
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
       const res = await fetch(`${backendUrl}/api/interviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
