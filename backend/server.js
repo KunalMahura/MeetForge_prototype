@@ -8,6 +8,7 @@ import connectDB from './config/db.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import codeRoutes from './routes/code.routes.js';
 import interviewRoutes from './routes/interview.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 // Inngest
 import { inngest } from './jobs/inngest/client.js';
@@ -73,6 +74,7 @@ app.use(express.json());
 // Main API Routes
 app.use('/api/code', codeRoutes);
 app.use('/api/interviews', interviewRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Inngest route for background jobs integration
 app.use(
