@@ -3,13 +3,80 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from '@monaco-editor/react';
 import { Play, Lock, ChevronLeft, Loader2 } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/clerk-react';
-import { StreamVideo, StreamVideoClient, StreamCall, PaginatedGridLayout, CallControls, StreamTheme } from '@stream-io/video-react-sdk';
+import { StreamVideo, StreamVideoClient, StreamCall, CallControls, StreamTheme, ParticipantView, useCallStateHooks, hasScreenShare } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 import { Chat, Channel, Window, MessageList, MessageComposer } from 'stream-chat-react';
 import io from 'socket.io-client';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import 'stream-chat-react/dist/css/index.css';
+
+// Custom video layout: big remote video, small local PiP, screen share takes priority
+function CustomVideoLayout() {
+  const { useLocalParticipant, useRemoteParticipants, useParticipants } = useCallStateHooks();
+  const localParticipant = useLocalParticipant();
+  const remoteParticipants = useRemoteParticipants();
+  const allParticipants = useParticipants();
+
+  const remoteParticipant = remoteParticipants[0];
+
+  // Find whoever is screen sharing (could be local or remote)
+  const screenSharingParticipant = allParticipants.find(p => hasScreenShare(p));
+
+  return (
+    <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
+      {/* === MAIN STAGE === */}
+      {screenSharingParticipant ? (
+        // Screen share takes over the main stage
+        <div className="w-full h-full">
+          <ParticipantView
+            participant={screenSharingParticipant}
+            trackType="screenShareTrack"
+            className="w-full h-full object-contain"
+          />
+          <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full border border-white/10 backdrop-blur-sm">
+            📺 Screen Share
+          </div>
+        </div>
+      ) : remoteParticipant ? (
+        // Remote participant is the main stage
+        <div className="w-full h-full">
+          <ParticipantView
+            participant={remoteParticipant}
+            trackType="videoTrack"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ) : (
+        // No one else in room
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-10 h-10 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.72v6.56a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+              </svg>
+            </div>
+            <p className="text-white/30 text-sm">Waiting for someone to join...</p>
+          </div>
+        </div>
+      )}
+
+      {/* === LOCAL PiP (bottom-right corner, small like a real video call) === */}
+      {localParticipant && (
+        <div className="absolute bottom-14 right-2 w-24 h-16 rounded-lg overflow-hidden border border-white/20 shadow-2xl z-30 bg-black">
+          <ParticipantView
+            participant={localParticipant}
+            trackType="videoTrack"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] text-center py-0.5 truncate px-1">
+            You
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function InterviewRoom() {
   const { roomId } = useParams();
@@ -257,7 +324,7 @@ export default function InterviewRoom() {
               <StreamVideo client={videoClient}>
                 <StreamCall call={call}>
                   <StreamTheme className="h-full w-full flex flex-col">
-                    <PaginatedGridLayout />
+                    <CustomVideoLayout />
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 bg-black/50 p-2 rounded-xl backdrop-blur-md border border-white/10 shadow-xl">
                       <CallControls />
                     </div>
