@@ -11,3 +11,33 @@ body {
   background-color: var(--color-theme-navy);
   color: #ffffff;
 }
+
+/* Stream Video SDK overrides for interview room */
+.str-video {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.str-video__speaker-layout__wrapper {
+  height: 100% !important;
+}
+
+.str-video__speaker-layout__wrapper .str-video__video {
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.str-video__speaker-layout__participant-list {
+  max-height: 80px !important;
+}
+
+.str-video__call-controls {
+  background: transparent !important;
+  padding: 4px 0 !important;
+}
+
+.str-video__participant-view {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
