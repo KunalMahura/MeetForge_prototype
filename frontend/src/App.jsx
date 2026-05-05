@@ -3,6 +3,8 @@ import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/cle
 import Dashboard from './pages/Dashboard';
 import InterviewRoom from './pages/InterviewRoom';
 import Home from './pages/Home';
+import Problems from './pages/Problems';
+import SolveProblem from './pages/SolveProblem';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -43,9 +45,38 @@ function App() {
             </>
           }
         />
+
+        <Route
+          path="/practice"
+          element={
+            <>
+              <SignedIn>
+                <Problems />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
+
+        <Route
+          path="/practice/:slug"
+          element={
+            <>
+              <SignedIn>
+                <SolveProblem />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
       </Routes>
     </ClerkProvider>
   );
 }
 
 export default App;
+

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, Component } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from '@monaco-editor/react';
-import { Play, Lock, ChevronLeft, Loader2, VideoOff } from 'lucide-react';
+import { Play, Lock, ChevronLeft, Loader2, VideoOff, Code2, Send, Sparkles, Terminal } from 'lucide-react';
+import Logo from '../components/Logo';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { StreamVideo, StreamVideoClient, StreamCall, CallControls, StreamTheme, SpeakerLayout } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
@@ -26,13 +27,13 @@ class VideoErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-black/80 text-white p-4">
-          <VideoOff className="w-10 h-10 text-white/30 mb-3" />
-          <p className="text-white/50 text-sm text-center">Video unavailable.</p>
-          <p className="text-white/30 text-xs text-center mt-1">Camera/mic require HTTPS or localhost.</p>
+        <div className="h-full w-full flex flex-col items-center justify-center bg-surface-muted text-ink p-4 rounded-2xl">
+          <VideoOff className="w-10 h-10 text-ink-faint mb-3" />
+          <p className="text-ink-muted text-sm text-center">Video unavailable.</p>
+          <p className="text-ink-faint text-xs text-center mt-1">Camera/mic require HTTPS or localhost.</p>
           <button
             onClick={() => this.setState({ hasError: false })}
-            className="mt-3 px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-lg border border-white/10 transition"
+            className="mt-3 px-4 py-1.5 text-xs bg-accent-green/10 text-accent-green hover:bg-accent-green/20 rounded-lg border border-accent-green/20 transition font-medium"
           >
             Retry
           </button>
@@ -231,69 +232,84 @@ export default function InterviewRoom() {
     }
   };
 
+  /* ================ LOADING / ERROR STATES ================ */
+
   if (setupError) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black text-white">
-        <div className="text-theme-red font-bold mb-2">Error Setup Failed</div>
-        <p className="text-white/60 max-w-md text-center">{setupError}</p>
+      <div className="h-screen flex flex-col items-center justify-center bg-surface text-ink">
+        <div className="rounded-3xl bg-surface-raised border border-black/[0.06] shadow-premium-lg p-10 max-w-md text-center">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <VideoOff className="w-7 h-7 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-ink mb-2">Setup Failed</h2>
+          <p className="text-ink-muted text-sm leading-relaxed">{setupError}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-6 px-6 py-2.5 text-sm font-semibold text-white bg-ink rounded-full hover:bg-ink/90 transition"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!hasAccess || !videoClient || !chatClient || !call || !channel) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black text-white">
-        <Loader2 className="animate-spin w-12 h-12 mb-4 text-theme-red" />
-        <p className="text-white/60">{loadingStep}</p>
+      <div className="h-screen flex flex-col items-center justify-center bg-surface text-ink">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-accent-green/10 flex items-center justify-center">
+            <Loader2 className="animate-spin w-8 h-8 text-accent-green" />
+          </div>
+          <p className="text-ink-muted font-medium">{loadingStep}</p>
+        </div>
       </div>
     );
   }
 
+  /* ================ MAIN INTERVIEW UI ================ */
+
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden text-white relative selection:bg-indigo-500/30">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-theme-red/5 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-theme-orange/5 blur-[120px]" />
-      </div>
+    <div className="h-screen flex flex-col bg-surface overflow-hidden text-ink relative selection:bg-accent-green/20">
 
-      <div className="relative z-10 flex flex-col h-full">
-        {/* Header */}
-        <header className="flex justify-between items-center p-4 bg-white/[0.02] backdrop-blur-md border-b border-white/5">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 hover:bg-white/10 rounded-md transition text-white/60 hover:text-white"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-lg bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Interview Session</h1>
-              <p className="text-xs text-white/40 font-mono">ID: {roomId}</p>
-            </div>
+      {/* ===== HEADER ===== */}
+      <header className="flex justify-between items-center px-5 py-3 bg-surface-raised border-b border-black/[0.06] shadow-sm z-30">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 hover:bg-surface-muted rounded-xl transition text-ink-muted hover:text-ink mr-2"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <Logo />
+          <div className="ml-4 border-l border-black/[0.06] pl-4">
+             <p className="text-[11px] text-ink-faint font-mono leading-none">SESSION ID</p>
+             <p className="text-xs font-bold text-ink leading-tight">{roomId}</p>
           </div>
 
-          <div className="flex items-center space-x-3">
-            {/* Simulated locking logic indicator */}
-            <div className="flex items-center text-xs font-semibold px-3 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20 backdrop-blur-sm">
-              <Lock className="w-3 h-3 mr-1" /> Room Locked
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center text-xs font-semibold px-3 py-1.5 bg-accent-green/10 text-accent-green rounded-full border border-accent-green/20">
+            <Lock className="w-3 h-3 mr-1.5" /> Room Locked
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left pane: Video/Chat */}
-          <div className="w-[400px] lg:w-[450px] min-w-[300px] border-r border-white/5 flex flex-col bg-[#0f0f13] backdrop-blur-sm z-20 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
-            <div className="h-[55%] border-b border-white/5 relative bg-black overflow-hidden">
+      {/* ===== MAIN CONTENT ===== */}
+      <div className="flex-1 flex overflow-hidden">
+
+        {/* LEFT PANEL — Video + Chat */}
+        <div className="w-[380px] lg:w-[420px] min-w-[300px] border-r border-black/[0.06] flex flex-col bg-surface-raised z-20">
+
+          {/* Video Area */}
+          <div className="h-[55%] border-b border-black/[0.06] relative overflow-hidden bg-surface-muted p-3">
+            <div className="h-full w-full rounded-2xl overflow-hidden bg-surface-muted relative">
               <VideoErrorBoundary>
                 <StreamVideo client={videoClient}>
                   <StreamCall call={call}>
                     <StreamTheme className="h-full w-full">
-                      <div className="h-[calc(100%-56px)] w-full">
+                      <div className="h-[calc(100%-52px)] w-full rounded-t-2xl overflow-hidden">
                         <SpeakerLayout />
                       </div>
-                      <div className="h-[56px] flex items-center justify-center bg-[#0f0f13] border-t border-white/10">
+                      <div className="h-[52px] flex items-center justify-center bg-surface-raised border-t border-black/[0.06] rounded-b-2xl">
                         <CallControls onLeave={() => navigate('/')} />
                       </div>
                     </StreamTheme>
@@ -301,121 +317,158 @@ export default function InterviewRoom() {
                 </StreamVideo>
               </VideoErrorBoundary>
             </div>
-            <div className="flex-1 flex flex-col stream-chat-theme">
-              <Chat client={chatClient} theme="str-chat__theme-dark">
-                <Channel channel={channel}>
-                  <Window>
-                    <MessageList />
-                    <MessageComposer />
-                  </Window>
-                </Channel>
-              </Chat>
-            </div>
           </div>
 
-          {/* Right pane: Monaco Editor & Output */}
-          <div className="flex-1 flex flex-col bg-black">
-            {/* Editor Header */}
-            <div className="bg-white/[0.02] border-b border-white/5 px-4 py-2 flex justify-between items-center backdrop-blur-sm">
-              <select 
-                id="language-select" 
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="bg-white/5 text-white/80 text-sm border border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-theme-red"
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col overflow-hidden interview-chat-theme">
+            <Chat client={chatClient} theme="str-chat__theme-light">
+              <Channel channel={channel}>
+                <Window>
+                  <MessageList />
+                  <MessageComposer />
+                </Window>
+              </Channel>
+            </Chat>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL — Editor + Output */}
+        <div className="flex-1 flex flex-col bg-surface min-w-0">
+
+          {/* Editor Header Bar */}
+          <div className="bg-surface-raised border-b border-black/[0.06] px-4 py-2.5 flex justify-between items-center">
+            <select 
+              id="language-select" 
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className="bg-surface-muted text-ink text-sm border border-black/[0.08] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-green/40 transition font-medium cursor-pointer"
+            >
+              <option value="javascript">JavaScript (Node.js)</option>
+              <option value="python">Python (3)</option>
+              <option value="java">Java</option>
+            </select>
+            <button
+              onClick={handleRunCode}
+              disabled={isRunning}
+              className="flex items-center gap-1.5 px-5 py-2 bg-accent-green text-white text-sm font-semibold rounded-xl hover:bg-accent-green/90 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+            >
+              {isRunning ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+              {isRunning ? 'Running…' : 'Run Code'}
+            </button>
+          </div>
+
+          {/* Monaco Editor */}
+          <div className="flex-1 relative border-b border-black/[0.06]">
+            <Editor
+              height="100%"
+              theme="vs-light"
+              language={selectedLanguage}
+              value={code}
+              onChange={handleCodeChange}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                fontFamily: '"Plus Jakarta Sans", JetBrains Mono, monospace',
+                padding: { top: 16 },
+                scrollBeyondLastLine: false,
+                renderLineHighlight: 'gutter',
+                lineNumbersMinChars: 3,
+              }}
+            />
+          </div>
+
+          {/* Terminal / AI Panel */}
+          <div className="h-1/3 min-h-[200px] bg-surface-raised border-t border-black/[0.06] flex flex-col">
+
+            {/* Tab Bar */}
+            <div className="flex items-center gap-1 px-4 pt-3 pb-0">
+              <button 
+                onClick={() => setActiveTab('output')}
+                className={`flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold px-3 py-2 rounded-lg transition ${
+                  activeTab === 'output' 
+                    ? 'bg-ink text-white' 
+                    : 'text-ink-faint hover:text-ink-muted hover:bg-surface-muted'
+                }`}
               >
-                <option value="javascript" className="bg-black">JavaScript (Node.js)</option>
-                <option value="python" className="bg-black">Python (3)</option>
-                <option value="java" className="bg-black">Java</option>
-              </select>
-              <button
-                onClick={handleRunCode}
-                disabled={isRunning}
-                className="flex items-center px-4 py-1.5 bg-theme-red/20 text-theme-red text-sm font-medium rounded-lg border border-theme-red/30 hover:bg-theme-red/30 transition disabled:opacity-50"
+                <Terminal className="w-3.5 h-3.5" />
+                Output
+              </button>
+              <button 
+                onClick={() => setActiveTab('ai')}
+                className={`flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold px-3 py-2 rounded-lg transition ${
+                  activeTab === 'ai' 
+                    ? 'bg-accent-purple text-white' 
+                    : 'text-ink-faint hover:text-ink-muted hover:bg-surface-muted'
+                }`}
               >
-                {isRunning ? 'Running...' : <><Play className="w-4 h-4 mr-1" /> Run Code</>}
+                <Sparkles className="w-3.5 h-3.5" />
+                AI Assistant
               </button>
             </div>
 
-            {/* Monaco Editor */}
-            <div className="flex-1 relative">
-              <Editor
-                height="100%"
-                theme="vs-dark"
-                language={selectedLanguage}
-                value={code}
-                onChange={handleCodeChange}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  fontFamily: 'JetBrains Mono, monospace',
-                  padding: { top: 16 }
-                }}
-              />
-            </div>
-
-            {/* Terminal/Output/AI window */}
-            <div className="h-1/3 min-h-[250px] bg-[#0d0d0d] border-t border-white/5 p-4 font-mono shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] flex flex-col">
-              <div className="flex items-center mb-3 space-x-4 border-b border-white/10 pb-2">
-                <button 
-                  onClick={() => setActiveTab('output')}
-                  className={`text-xs uppercase tracking-wider font-bold transition ${activeTab === 'output' ? 'text-theme-yellow' : 'text-white/40 hover:text-white/60'}`}
-                >
-                  Output Console
-                </button>
-                <button 
-                  onClick={() => setActiveTab('ai')}
-                  className={`text-xs uppercase tracking-wider font-bold transition flex items-center gap-1 ${activeTab === 'ai' ? 'text-indigo-400' : 'text-white/40 hover:text-white/60'}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                  AI Assistant
-                </button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-                {activeTab === 'output' ? (
-                  <pre className="text-white/70 text-sm whitespace-pre-wrap">{output || 'Code output will appear here...'}</pre>
-                ) : (
-                  <div className="flex flex-col h-full font-sans">
-                    <div className="flex-1 overflow-y-auto space-y-3 pb-2 pr-2">
-                      {aiMessages.length === 0 ? (
-                        <p className="text-white/40 text-sm italic">Ask the AI a question about your code. It has full context of what you're working on!</p>
-                      ) : (
-                        aiMessages.map((msg, i) => (
-                          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] rounded-xl p-3 text-sm ${msg.role === 'user' ? 'bg-indigo-600/30 border border-indigo-500/30 text-white' : 'bg-white/5 border border-white/10 text-white/80'}`}>
-                              <span className="text-[10px] uppercase font-bold opacity-50 block mb-1">{msg.role}</span>
-                              <div className="whitespace-pre-wrap">{msg.content}</div>
-                            </div>
+            {/* Tab Content */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-4 py-3">
+              {activeTab === 'output' ? (
+                <pre className="text-ink-muted text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                  {output || 'Code output will appear here...'}
+                </pre>
+              ) : (
+                <div className="flex flex-col h-full font-sans">
+                  <div className="flex-1 overflow-y-auto space-y-3 pb-2 pr-1">
+                    {aiMessages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center text-center py-8">
+                        <div className="w-10 h-10 rounded-xl bg-accent-purple/10 flex items-center justify-center mb-3">
+                          <Sparkles className="w-5 h-5 text-accent-purple" />
+                        </div>
+                        <p className="text-ink-faint text-sm">Ask the AI about your code — it has full context!</p>
+                      </div>
+                    ) : (
+                      aiMessages.map((msg, i) => (
+                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] rounded-2xl p-3 text-sm ${
+                            msg.role === 'user' 
+                              ? 'bg-accent-green/10 border border-accent-green/20 text-ink' 
+                              : 'bg-surface-muted border border-black/[0.06] text-ink-muted'
+                          }`}>
+                            <span className="text-[10px] uppercase font-bold opacity-40 block mb-1">
+                              {msg.role === 'user' ? 'You' : 'AI'}
+                            </span>
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
                           </div>
-                        ))
-                      )}
-                      {isAiLoading && (
-                         <div className="flex justify-start">
-                            <div className="bg-white/5 border border-white/10 text-white/80 rounded-xl p-3 text-sm flex items-center gap-2">
-                              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" /> Thinking...
-                            </div>
+                        </div>
+                      ))
+                    )}
+                    {isAiLoading && (
+                       <div className="flex justify-start">
+                         <div className="bg-surface-muted border border-black/[0.06] text-ink-muted rounded-2xl p-3 text-sm flex items-center gap-2">
+                           <Loader2 className="w-4 h-4 animate-spin text-accent-purple" /> Thinking…
                          </div>
-                      )}
-                    </div>
-                    <form onSubmit={handleSendAiMessage} className="mt-2 flex gap-2 pt-2 border-t border-white/5">
-                      <input 
-                        type="text" 
-                        value={aiInput}
-                        onChange={(e) => setAiInput(e.target.value)}
-                        placeholder="Ask about your code..." 
-                        className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                      <button 
-                        type="submit"
-                        disabled={isAiLoading || !aiInput.trim()}
-                        className="px-4 py-2 bg-indigo-500/20 text-indigo-400 text-sm font-medium rounded-lg border border-indigo-500/30 hover:bg-indigo-500/30 transition disabled:opacity-50"
-                      >
-                        Send
-                      </button>
-                    </form>
+                       </div>
+                    )}
                   </div>
-                )}
-              </div>
+                  <form onSubmit={handleSendAiMessage} className="mt-2 flex gap-2 pt-3 border-t border-black/[0.06]">
+                    <input 
+                      type="text" 
+                      value={aiInput}
+                      onChange={(e) => setAiInput(e.target.value)}
+                      placeholder="Ask about your code…" 
+                      className="flex-1 bg-surface-muted border border-black/[0.08] rounded-xl px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent-purple/30 transition"
+                    />
+                    <button 
+                      type="submit"
+                      disabled={isAiLoading || !aiInput.trim()}
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-accent-purple text-white text-sm font-semibold rounded-xl hover:bg-accent-purple/90 transition disabled:opacity-40"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Send
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
         </div>

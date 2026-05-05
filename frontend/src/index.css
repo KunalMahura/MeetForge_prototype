@@ -1,18 +1,42 @@
 @import "tailwindcss";
 
 @theme {
+  /* Legacy dark palette – used by InterviewRoom */
   --color-theme-navy: #060771;
   --color-theme-red: #BF1A1A;
   --color-theme-orange: #FF6C0C;
   --color-theme-yellow: #FFE08F;
+
+  /* New light palette */
+  --color-surface: #FAFAF8;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-muted: #F3F3EF;
+  --color-ink: #18181B;
+  --color-ink-muted: #71717A;
+  --color-ink-faint: #A1A1AA;
+  --color-accent-green: #5E8056;
+  --color-accent-olive: #6B7B5E;
+  --color-accent-orange: #E8913A;
+  --color-accent-peach: #F0C9A0;
+  --color-accent-purple: #8A98DF;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--color-theme-navy);
-  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Stream Video SDK overrides for interview room */
+/* ========================================
+   Stream Video SDK overrides (interview room)
+   ======================================== */
 .str-video {
   height: 100% !important;
   width: 100% !important;
@@ -36,8 +60,134 @@ body {
   padding: 4px 0 !important;
 }
 
+/* Style call control buttons for light theme */
+.str-video__call-controls button {
+  background: white !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: #111111 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Ensure icons inside are dark */
+.str-video__call-controls button svg,
+.str-video__call-controls button svg path,
+.str-video__call-controls button svg circle,
+.str-video__call-controls button svg rect {
+  fill: #111111 !important;
+  stroke: #111111 !important;
+  opacity: 0.9 !important;
+}
+
+.str-video__call-controls button:hover {
+  background: #f4f4f4 !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+/* Keep the leave/end call button red */
+.str-video__call-controls button[title*="Leave"],
+.str-video__call-controls button[data-testid*="leave"],
+.str-video__call-controls .str-video__end-call-button {
+  background: #EF4444 !important;
+  border-color: #EF4444 !important;
+  color: white !important;
+}
+
 .str-video__participant-view {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   overflow: hidden !important;
 }
 
+/* Participant name labels */
+.str-video__participant-view__label {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  color: #111111 !important;
+  border-radius: 8px !important;
+}
+
+/* Fix unreadable menus (dark on dark) */
+.str-video__menu-container,
+.str-video__generic-menu,
+.str-video__menu {
+  background: #1a1a2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  color: white !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.str-video__menu-item,
+.str-video__generic-menu__item,
+.str-video__menu-item__label,
+.str-video__generic-menu__item__button {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500 !important;
+}
+
+.str-video__menu-item:hover,
+.str-video__generic-menu__item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.str-video__menu-item svg {
+  color: white !important;
+  fill: white !important;
+}
+
+/* ========================================
+   Utility classes for the new design
+   ======================================== */
+
+/* Glass card effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Premium shadow for floating cards */
+.shadow-premium {
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-premium-lg {
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Dot pattern overlay */
+.dot-pattern {
+  background-image: radial-gradient(circle, #d4d4d8 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Bento item hover lift */
+.bento-card {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+}
+
+/* Handwritten accent underline */
+.accent-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.accent-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 12px;
+  background: url("data:image/svg+xml,%3Csvg width='200' height='12' viewBox='0 0 200 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 8C30 2 60 2 100 6C140 10 170 4 198 4' stroke='%235E8056' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100% 100%;
+}

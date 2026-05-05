@@ -9,6 +9,8 @@ import webhookRoutes from './routes/webhook.routes.js';
 import codeRoutes from './routes/code.routes.js';
 import interviewRoutes from './routes/interview.routes.js';
 import aiRoutes from './routes/ai.routes.js';
+import problemRoutes from './routes/problem.routes.js';
+import submissionRoutes from './routes/submission.routes.js';
 
 // Inngest
 import { inngest } from './jobs/inngest/client.js';
@@ -75,6 +77,8 @@ app.use(express.json());
 app.use('/api/code', codeRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/problems', problemRoutes);
+app.use('/api/submissions', submissionRoutes);
 
 // Inngest route for background jobs integration
 app.use(
