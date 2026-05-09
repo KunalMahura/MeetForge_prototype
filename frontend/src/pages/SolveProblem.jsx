@@ -26,28 +26,72 @@ export default function SolveProblem() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const fetchProblem = async () => {
+    const fetchData = async () => {
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
         const res = await fetch(`${backendUrl}/api/problems/${slug}`);
         const data = await res.json();
+        
         if (data.success) {
-          setProblem(data.problem);
-          setCode(data.problem.boilerplate?.javascript || '// Write your solution here');
+          const fetchedProblem = data.problem;
+          setProblem(fetchedProblem);
+          
+          let initialCode = fetchedProblem.boilerplate?.javascript || '// Write your solution here';
+          let initialLang = 'javascript';
+          
+          // Fetch latest submission if user is logged in
+          if (userId) {
+            const subRes = await fetch(`${backendUrl}/api/submissions/latest?userId=${userId}&problemId=${fetchedProblem._id}`);
+            const subData = await subRes.json();
+            if (subData.success && subData.submission) {
+              initialCode = subData.submission.code;
+              initialLang = subData.submission.language;
+              setOutput(subData.submission.output || '');
+            }
+          }
+          
+          setCode(initialCode);
+          setLanguage(initialLang);
         }
       } catch (err) {
-        console.error('Failed to fetch problem:', err);
+        console.error('Failed to fetch data:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProblem();
-  }, [slug]);
+    fetchData();
+  }, [slug, userId]);
 
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
     if (problem?.boilerplate?.[newLang]) {
       setCode(problem.boilerplate[newLang]);
+    }
+  };
+
+  const handleSave = async (statusOverride = 'Attempted', outputOverride = output) => {
+    if (!userId || !problem) return;
+    setIsSaving(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      await fetch(`${backendUrl}/api/submissions/upsert`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          problemId: problem._id,
+          code,
+          language,
+          status: statusOverride,
+          output: outputOverride,
+        }),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error('Failed to save:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -63,36 +107,14 @@ export default function SolveProblem() {
       const data = await res.json();
       const result = data.run?.output || data.compile?.output || data.error || 'No output.';
       setOutput(result);
+      
+      // Auto-save submission on run
+      await handleSave('Attempted', result);
+      
     } catch (err) {
       setOutput('Failed to connect to code runner.');
     } finally {
       setIsRunning(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!userId || !problem) return;
-    setIsSaving(true);
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-      await fetch(`${backendUrl}/api/submissions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          problemId: problem._id,
-          code,
-          language,
-          status: 'Attempted',
-          output,
-        }),
-      });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch (err) {
-      console.error('Failed to save:', err);
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -132,12 +154,15 @@ export default function SolveProblem() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleSave} disabled={isSaving}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-black/[0.08] bg-surface-muted hover:bg-surface-raised transition disabled:opacity-50"
+          {saved && <span className="text-xs font-semibold text-accent-green mr-2 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Saved</span>}
+          
+          <button onClick={() => handleSave('Solved')} disabled={isSaving || isRunning}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-black/[0.08] bg-surface hover:bg-emerald-50 text-emerald-600 hover:border-emerald-200 transition disabled:opacity-50"
           >
-            {saved ? <CheckCircle2 className="w-4 h-4 text-accent-green" /> : isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saved ? 'Saved!' : 'Save'}
+            <CheckCircle2 className="w-4 h-4" />
+            Mark Solved
           </button>
+          
           <button onClick={handleRunCode} disabled={isRunning}
             className="flex items-center gap-1.5 px-5 py-2 bg-accent-green text-white text-sm font-semibold rounded-xl hover:bg-accent-green/90 transition active:scale-95 disabled:opacity-50 shadow-sm"
           >

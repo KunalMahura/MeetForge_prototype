@@ -2,10 +2,13 @@ import React from "react";
 import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { ArrowRight, Code2, Users, Video, ChevronDown, Sparkles, Zap, Shield } from "lucide-react";
 import Logo from "../components/Logo";
+import DigHole from "../components/DigHole";
+import BentoDigHole from "../components/BentoDigHole";
 
 import gradientOrange from "../assets/gradient_orange.png";
 import gradientGreen from "../assets/gradient_green.png";
 import gradientPurple from "../assets/gradient_purple.png";
+import practiceCardBg from "../assets/practice_card_bg.png";
 
 const Home = () => {
   return (
@@ -74,6 +77,13 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ========== DIG HOLE INTERACTIVE SECTION ========== */}
+      <DigHole
+        heading={["MEET", "FORGE"]}
+        subtext="Drag your cursor across the surface to reveal what powers seamless interviews."
+        accentColor="#5E8056"
+      />
+
       {/* ========== BENTO GRID ========== */}
       <section id="features" className="max-w-7xl mx-auto px-6 pb-24">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-4 auto-rows-[220px] lg:auto-rows-[280px]">
@@ -81,11 +91,11 @@ const Home = () => {
           {/* Card 1 — Practice Problems (large, spans 5 cols) */}
           <div className="col-span-4 lg:col-span-5 row-span-2 bento-card rounded-4xl overflow-hidden relative group cursor-pointer">
             <img
-              src={gradientOrange}
-              alt="Warm abstract gradient"
+              src={practiceCardBg}
+              alt="Practice problems background"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
             <div className="relative z-10 h-full flex flex-col justify-between p-8">
               <h3 className="text-2xl lg:text-3xl font-bold text-white leading-tight">
                 Practice
@@ -136,13 +146,14 @@ const Home = () => {
 
           {/* Card 2 — Crystal Clear Video (spans 4 cols) */}
           <div className="col-span-4 lg:col-span-4 bento-card rounded-4xl overflow-hidden relative group cursor-pointer">
-            <img
-              src={gradientPurple}
-              alt="Purple abstract gradient"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            <video
+              src="https://videos.pexels.com/video-files/4154925/4154925-sd_640_360_30fps.mp4"
+              autoPlay muted loop playsInline
+              className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            <div className="relative z-10 h-full flex flex-col justify-between p-7">
+            <BentoDigHole brushSize={45} showRevealButton={true} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+            <div className="relative z-10 h-full flex flex-col justify-between p-7 pointer-events-none">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
                   <Video className="w-4 h-4 text-white" />
@@ -172,13 +183,14 @@ const Home = () => {
 
           {/* Card 4 — Real-time Sync (spans 4 cols) */}
           <div className="col-span-4 lg:col-span-4 bento-card rounded-4xl overflow-hidden relative group cursor-pointer">
-            <img
-              src={gradientGreen}
-              alt="Green abstract gradient"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            <video
+              src="https://videos.pexels.com/video-files/856974/856974-hd_1280_720_30fps.mp4"
+              autoPlay muted loop playsInline
+              className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <div className="relative z-10 h-full flex flex-col justify-between p-7">
+            <BentoDigHole brushSize={45} showRevealButton={true} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+            <div className="relative z-10 h-full flex flex-col justify-between p-7 pointer-events-none">
               <h3 className="text-xl font-bold text-white">Real-time Sync</h3>
               {/* Floating glass element */}
               <div className="glass-card rounded-xl p-3 max-w-[200px] shadow-premium animate-float-delayed">

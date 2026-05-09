@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Problem from '../models/Problem.js';
+import { extraProblems } from './problemsData.js';
 
 dotenv.config();
 
-const problems = [
+const initialProblems = [
   {
     title: 'Two Sum',
     slug: 'two-sum',
@@ -187,16 +188,21 @@ const problems = [
   },
 ];
 
+const allProblems = [...initialProblems, ...extraProblems];
+
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
+    await mongoose.connection.collection('submissions').deleteMany({});
+    console.log('Cleared existing submissions (to prevent dangling problem IDs)');
+
     await Problem.deleteMany({});
     console.log('Cleared existing problems');
 
-    await Problem.insertMany(problems);
-    console.log(`Seeded ${problems.length} problems successfully!`);
+    await Problem.insertMany(allProblems);
+    console.log(`Seeded ${allProblems.length} problems successfully!`);
 
     process.exit(0);
   } catch (err) {
