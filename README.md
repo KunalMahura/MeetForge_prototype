@@ -1,5 +1,7 @@
 # MeetForge - 1-on-1 Interview Platform
 
+🚀 **Live Demo:** [https://meet-forge-prototype.vercel.app](https://meet-forge-prototype.vercel.app)
+
 This project is a MERN-stack application leveraging Clerk for Auth, Stream for Video/Chat, Monaco Editor for code rendering, and Inngest for background jobs.
 
 ## Folder Structure
