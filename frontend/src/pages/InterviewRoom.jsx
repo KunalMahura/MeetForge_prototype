@@ -139,7 +139,7 @@ export default function InterviewRoom() {
 
         // 5. Setup Socket.io
         setLoadingStep('Connecting WebSocket...');
-        newSocket = io(window.location.origin, { path: '/socket.io' });
+        newSocket = io(backendUrl, { path: '/socket.io' });
         newSocket.emit('join-room', roomId);
         
         newSocket.on('receive-code-change', (newCode) => {
