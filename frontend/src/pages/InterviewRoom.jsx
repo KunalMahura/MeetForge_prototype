@@ -1,7 +1,7 @@
-import React, { useState, useEffect, Component } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Component } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from '@monaco-editor/react';
-import { Play, Lock, ChevronLeft, Loader2, VideoOff, Code2, Send, Sparkles, Terminal } from 'lucide-react';
+import { Play, Lock, ChevronLeft, Loader2, VideoOff, Code2, Send, Sparkles, Terminal, GripVertical, GripHorizontal } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { StreamVideo, StreamVideoClient, StreamCall, CallControls, StreamTheme, SpeakerLayout } from '@stream-io/video-react-sdk';
@@ -11,6 +11,102 @@ import io from 'socket.io-client';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import 'stream-chat-react/dist/css/index.css';
+
+/* ================ RESIZE HOOK ================ */
+
+function useResizable({ direction, containerRef, initialRatio = 0.5, minRatioPx = 150 }) {
+  const [ratio, setRatio] = useState(initialRatio);
+  const isDragging = useRef(false);
+  const startPos = useRef(0);
+  const startRatio = useRef(0);
+
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    isDragging.current = true;
+    startPos.current = direction === 'horizontal' ? e.clientX : e.clientY;
+    startRatio.current = ratio;
+    document.body.style.cursor = direction === 'horizontal' ? 'col-resize' : 'row-resize';
+    document.body.style.userSelect = 'none';
+  }, [ratio, direction]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const totalSize = direction === 'horizontal' ? rect.width : rect.height;
+      const currentPos = direction === 'horizontal' ? e.clientX : e.clientY;
+      const startOffset = direction === 'horizontal' ? rect.left : rect.top;
+      const newPixel = currentPos - startOffset;
+      
+      // Clamp so neither side gets smaller than minRatioPx
+      const clampedPixel = Math.max(minRatioPx, Math.min(newPixel, totalSize - minRatioPx));
+      setRatio(clampedPixel / totalSize);
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging.current) {
+        isDragging.current = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [containerRef, direction, minRatioPx]);
+
+  return { ratio, handleMouseDown };
+}
+
+/* ================ RESIZE HANDLE COMPONENTS ================ */
+
+function HorizontalResizeHandle({ onMouseDown }) {
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      className="group relative w-[6px] cursor-col-resize flex items-center justify-center z-30 hover:bg-accent-green/5 transition-colors"
+      style={{ flexShrink: 0 }}
+    >
+      {/* Visible accent line */}
+      <div className="absolute inset-y-0 w-[2px] bg-black/[0.06] group-hover:bg-accent-green/60 group-active:bg-accent-green transition-colors" />
+      {/* Grip dots */}
+      <div className="relative z-10 flex flex-col gap-[3px] opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+      </div>
+    </div>
+  );
+}
+
+function VerticalResizeHandle({ onMouseDown }) {
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      className="group relative h-[6px] cursor-row-resize flex items-center justify-center z-30 hover:bg-accent-green/5 transition-colors"
+      style={{ flexShrink: 0 }}
+    >
+      {/* Visible accent line */}
+      <div className="absolute inset-x-0 h-[2px] bg-black/[0.06] group-hover:bg-accent-green/60 group-active:bg-accent-green transition-colors" />
+      {/* Grip dots */}
+      <div className="relative z-10 flex gap-[3px] opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+        <div className="w-[3px] h-[3px] rounded-full bg-accent-green/60" />
+      </div>
+    </div>
+  );
+}
+
+/* ================ ERROR BOUNDARY ================ */
 
 // Error Boundary to catch Stream SDK crashes (e.g. camera/mic on insecure HTTP)
 class VideoErrorBoundary extends Component {
@@ -44,6 +140,8 @@ class VideoErrorBoundary extends Component {
   }
 }
 
+/* ================ MAIN COMPONENT ================ */
+
 export default function InterviewRoom() {
   const { roomId } = useParams();
   const navigate = useNavigate();
@@ -68,6 +166,33 @@ export default function InterviewRoom() {
   const [socket, setSocket] = useState(null);
   const [setupError, setSetupError] = useState(null);
   const [loadingStep, setLoadingStep] = useState('Initializing...');
+
+  // Refs for resizable containers
+  const mainContainerRef = useRef(null);
+  const leftPanelRef = useRef(null);
+  const rightPanelRef = useRef(null);
+
+  // Resizable hooks
+  const horizontalResize = useResizable({
+    direction: 'horizontal',
+    containerRef: mainContainerRef,
+    initialRatio: 0.32,
+    minRatioPx: 280,
+  });
+
+  const leftVerticalResize = useResizable({
+    direction: 'vertical',
+    containerRef: leftPanelRef,
+    initialRatio: 0.55,
+    minRatioPx: 120,
+  });
+
+  const rightVerticalResize = useResizable({
+    direction: 'vertical',
+    containerRef: rightPanelRef,
+    initialRatio: 0.65,
+    minRatioPx: 120,
+  });
 
   useEffect(() => {
     if (!isLoaded || !userId || !user) return;
@@ -293,14 +418,21 @@ export default function InterviewRoom() {
         </div>
       </header>
 
-      {/* ===== MAIN CONTENT ===== */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* ===== MAIN CONTENT — Resizable ===== */}
+      <div ref={mainContainerRef} className="flex-1 flex overflow-hidden">
 
-        {/* LEFT PANEL — Video + Chat */}
-        <div className="w-[380px] lg:w-[420px] min-w-[300px] border-r border-black/[0.06] flex flex-col bg-surface-raised z-20">
+        {/* LEFT PANEL — Video + Chat (resizable vertically) */}
+        <div
+          ref={leftPanelRef}
+          className="flex flex-col bg-surface-raised z-20 overflow-hidden"
+          style={{ width: `${horizontalResize.ratio * 100}%`, minWidth: 280 }}
+        >
 
           {/* Video Area */}
-          <div className="h-[55%] border-b border-black/[0.06] relative overflow-hidden bg-surface-muted p-3">
+          <div
+            className="relative overflow-hidden bg-surface-muted p-3"
+            style={{ height: `${leftVerticalResize.ratio * 100}%`, minHeight: 120 }}
+          >
             <div className="h-full w-full rounded-2xl overflow-hidden bg-surface-muted relative">
               <VideoErrorBoundary>
                 <StreamVideo client={videoClient}>
@@ -319,8 +451,11 @@ export default function InterviewRoom() {
             </div>
           </div>
 
+          {/* Vertical Resize Handle — Video / Chat */}
+          <VerticalResizeHandle onMouseDown={leftVerticalResize.handleMouseDown} />
+
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col overflow-hidden interview-chat-theme">
+          <div className="flex-1 flex flex-col overflow-hidden interview-chat-theme min-h-0">
             <Chat client={chatClient} theme="str-chat__theme-light">
               <Channel channel={channel}>
                 <Window>
@@ -332,11 +467,14 @@ export default function InterviewRoom() {
           </div>
         </div>
 
-        {/* RIGHT PANEL — Editor + Output */}
-        <div className="flex-1 flex flex-col bg-surface min-w-0">
+        {/* Horizontal Resize Handle — Left / Right */}
+        <HorizontalResizeHandle onMouseDown={horizontalResize.handleMouseDown} />
+
+        {/* RIGHT PANEL — Editor + Output (resizable vertically) */}
+        <div ref={rightPanelRef} className="flex-1 flex flex-col bg-surface min-w-0 overflow-hidden">
 
           {/* Editor Header Bar */}
-          <div className="bg-surface-raised border-b border-black/[0.06] px-4 py-2.5 flex justify-between items-center">
+          <div className="bg-surface-raised border-b border-black/[0.06] px-4 py-2.5 flex justify-between items-center" style={{ flexShrink: 0 }}>
             <select 
               id="language-select" 
               value={selectedLanguage}
@@ -362,7 +500,10 @@ export default function InterviewRoom() {
           </div>
 
           {/* Monaco Editor */}
-          <div className="flex-1 relative border-b border-black/[0.06]">
+          <div
+            className="relative overflow-hidden"
+            style={{ height: `${rightVerticalResize.ratio * 100}%`, minHeight: 120 }}
+          >
             <Editor
               height="100%"
               theme="vs-light"
@@ -381,11 +522,14 @@ export default function InterviewRoom() {
             />
           </div>
 
+          {/* Vertical Resize Handle — Editor / Output */}
+          <VerticalResizeHandle onMouseDown={rightVerticalResize.handleMouseDown} />
+
           {/* Terminal / AI Panel */}
-          <div className="h-1/3 min-h-[200px] bg-surface-raised border-t border-black/[0.06] flex flex-col">
+          <div className="flex-1 min-h-0 bg-surface-raised flex flex-col overflow-hidden">
 
             {/* Tab Bar */}
-            <div className="flex items-center gap-1 px-4 pt-3 pb-0">
+            <div className="flex items-center gap-1 px-4 pt-3 pb-0" style={{ flexShrink: 0 }}>
               <button 
                 onClick={() => setActiveTab('output')}
                 className={`flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold px-3 py-2 rounded-lg transition ${
