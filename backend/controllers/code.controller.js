@@ -77,7 +77,7 @@ export const executeCode = async (req, res) => {
     }
     
     if (!outputString.trim()) {
-        outputString = 'Execution finished without output.';
+        outputString = 'Execution finished without output.\n\n💡 Tip: Since this is a raw execution environment, make sure to add console.log() or print() statements at the bottom of your code to see the result of your function calls!';
     }
 
     res.status(200).json({
@@ -87,22 +87,26 @@ export const executeCode = async (req, res) => {
     });
 
   } catch (error) {
-    // If the error comes from execAsync (like syntax error or timeout), it has stdout/stderr properties
-    if (error.stdout || error.stderr) {
-         let errorOutput = '';
-         if (error.stdout) errorOutput += error.stdout + '\n';
-         if (error.stderr) errorOutput += error.stderr;
-         
-         if (error.killed) {
-             errorOutput += '\nExecution timed out (10 seconds limit).';
-         }
-
-         return res.status(200).json({
-            run: {
-              output: errorOutput || 'Execution failed.'
-            }
-         });
+    // If the error comes from execAsync (like syntax error, missing command, or timeout)
+    let errorOutput = '';
+    
+    if (error.stdout) errorOutput += error.stdout + '\n';
+    if (error.stderr) errorOutput += error.stderr;
+    
+    if (error.killed) {
+        errorOutput += '\n⏳ Execution timed out (10 seconds limit). Infinite loop detected?';
     }
+
+    if (!errorOutput && error.message) {
+        errorOutput = error.message;
+    }
+
+    // Always return 200 so the frontend displays the error in the terminal instead of crashing
+    return res.status(200).json({
+       run: {
+         output: errorOutput || '❌ Execution failed unexpectedly.'
+       }
+    });
     
     console.error('Local Code execution error:', error);
     res.status(500).json({ error: 'Failed to execute code locally' });
