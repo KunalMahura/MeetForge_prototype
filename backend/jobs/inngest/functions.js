@@ -1,5 +1,5 @@
 import { inngest } from './client.js';
-import Interview from '../../models/Interview.js';
+import prisma from '../../config/prisma.js';
 
 // Automatically clean up sessions after 2 hours if users forget to end them
 export const cleanupOrphanedInterviews = inngest.createFunction(
@@ -13,11 +13,15 @@ export const cleanupOrphanedInterviews = inngest.createFunction(
 
     // Run a step to mark the interview as completed if it is still "in-progress"
     await step.run('close-interview', async () => {
-      const interview = await Interview.findById(interviewId);
+      const interview = await prisma.interview.findUnique({
+        where: { id: interviewId }
+      });
       
       if (interview && interview.status === 'in-progress') {
-        interview.status = 'completed';
-        await interview.save();
+        await prisma.interview.update({
+          where: { id: interviewId },
+          data: { status: 'completed' }
+        });
         return { message: `Interview ${interviewId} automatically closed.` };
       }
       return { message: `Interview ${interviewId} was already closed or not in-progress.` };
