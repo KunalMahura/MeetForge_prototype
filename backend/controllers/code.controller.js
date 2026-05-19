@@ -25,15 +25,26 @@ export const executeCode = async (req, res) => {
     cmdPrefix = 'node';
   } else if (runtimeLanguage === 'python' || runtimeLanguage === 'py') {
     ext = 'py';
-    cmdPrefix = 'python'; // Might need to be 'python3' on some systems
+    // Use python3 on Linux (Render), python on Windows
+    cmdPrefix = process.platform === 'win32' ? 'python' : 'python3';
   } else if (runtimeLanguage === 'java') {
+    const windowsJavaPath = 'C:\\Program Files\\Microsoft\\jdk-17.0.18.8-hotspot\\bin\\java.exe';
+    const javaAvailable = process.platform === 'win32'
+      ? fs.existsSync(windowsJavaPath)
+      : (() => { try { require('child_process').execSync('java -version', { stdio: 'ignore' }); return true; } catch { return false; } })();
+
+    if (!javaAvailable) {
+      return res.status(200).json({
+        run: {
+          output: '❌ Java is not available on this server.\n\nPlease use JavaScript or Python — both are fully supported.\nIf you need Java execution, a Judge0 API integration is required.'
+        }
+      });
+    }
+
     ext = 'java';
-    // Java requires the file name to match the public class name, 
-    // but for simple scripts we can use Java 11+ single-file source-code programs feature.
-    const expectedJavaPath = 'C:\\Program Files\\Microsoft\\jdk-17.0.18.8-hotspot\\bin\\java.exe';
-    cmdPrefix = fs.existsSync(expectedJavaPath) ? `"${expectedJavaPath}"` : 'java'; 
+    cmdPrefix = process.platform === 'win32' ? `"${windowsJavaPath}"` : 'java';
   } else {
-     return res.status(400).json({ error: 'Unsupported language' });
+    return res.status(400).json({ error: 'Unsupported language' });
   }
 
   // Create a temporary file
