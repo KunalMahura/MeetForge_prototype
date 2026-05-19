@@ -30,7 +30,7 @@ The user will ask you a question. Please respond accordingly based on the code p
     }
     
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: fullPrompt,
     });
     

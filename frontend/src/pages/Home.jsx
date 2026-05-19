@@ -3,7 +3,7 @@ import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { ArrowRight, Code2, Users, Video, ChevronDown, Sparkles, Zap, Shield } from "lucide-react";
 import Logo from "../components/Logo";
 import DigHole from "../components/DigHole";
-import BentoDigHole from "../components/BentoDigHole";
+
 
 import gradientOrange from "../assets/gradient_orange.png";
 import gradientGreen from "../assets/gradient_green.png";
@@ -151,7 +151,6 @@ const Home = () => {
               autoPlay muted loop playsInline
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <BentoDigHole brushSize={45} showRevealButton={true} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
             <div className="relative z-10 h-full flex flex-col justify-between p-7 pointer-events-none">
               <div className="flex items-center gap-2">
@@ -188,7 +187,6 @@ const Home = () => {
               autoPlay muted loop playsInline
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <BentoDigHole brushSize={45} showRevealButton={true} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
             <div className="relative z-10 h-full flex flex-col justify-between p-7 pointer-events-none">
               <h3 className="text-xl font-bold text-white">Real-time Sync</h3>
