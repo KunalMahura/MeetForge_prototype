@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { serve } from 'inngest/express';
-import connectDB from './config/db.js';
+import prisma from './config/prisma.js';
 
 // Routes
 import webhookRoutes from './routes/webhook.routes.js';
@@ -57,11 +57,14 @@ io.on('connection', (socket) => {
 });
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
-// Only connect if URI is real, allowing server to start minimally for boilerplate
-if (process.env.MONGODB_URI && process.env.MONGODB_URI !== 'your_mongodb_connection_string') {
-  connectDB();
-}
+// Prisma manages the DB connection pool automatically.
+// Test the connection at startup so we know it's healthy.
+prisma.$connect()
+  .then(() => console.log('PostgreSQL connected via Prisma'))
+  .catch((err) => {
+    console.error('Failed to connect to PostgreSQL:', err);
+    process.exit(1);
+  });
 
 // Middleware
 app.use(cors());

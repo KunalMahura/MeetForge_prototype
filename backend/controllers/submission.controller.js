@@ -1,6 +1,6 @@
-import Submission from '../models/Submission.js';
+import prisma from '../config/prisma.js';
 
-// POST /api/submissions — save a submission (creates a new record every time)
+// POST /api/submissions — save a new submission record every time
 export const saveSubmission = async (req, res) => {
   try {
     const { userId, problemId, code, language, status, output } = req.body;
@@ -9,13 +9,15 @@ export const saveSubmission = async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId, problemId, and code are required' });
     }
 
-    const submission = await Submission.create({
-      userId,
-      problemId,
-      code,
-      language: language || 'javascript',
-      status: status || 'Attempted',
-      output: output || '',
+    const submission = await prisma.submission.create({
+      data: {
+        userId,
+        problemId,
+        code,
+        language: language || 'javascript',
+        status: status || 'Attempted',
+        output: output || '',
+      },
     });
 
     res.status(201).json({ success: true, submission });
@@ -25,7 +27,7 @@ export const saveSubmission = async (req, res) => {
   }
 };
 
-// PUT /api/submissions/upsert — upsert: update if exists, create if not (one record per user+problem)
+// PUT /api/submissions/upsert — one record per user+problem, don't downgrade Solved to Attempted
 export const upsertSubmission = async (req, res) => {
   try {
     const { userId, problemId, code, language, status, output } = req.body;
@@ -34,25 +36,37 @@ export const upsertSubmission = async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId, problemId, and code are required' });
     }
 
-    // If new status is 'Solved', always allow it.
-    // But if we already have 'Solved', don't downgrade back to 'Attempted'.
-    const existing = await Submission.findOne({ userId, problemId });
+    // Check existing to prevent downgrading "Solved" → "Attempted"
+    const existing = await prisma.submission.findFirst({
+      where: { userId, problemId },
+    });
     const resolvedStatus = existing?.status === 'Solved' && status !== 'Solved'
       ? 'Solved'
       : (status || 'Attempted');
 
-    const submission = await Submission.findOneAndUpdate(
-      { userId, problemId },
-      {
-        $set: {
+    let submission;
+    if (existing) {
+      submission = await prisma.submission.update({
+        where: { id: existing.id },
+        data: {
           code,
           language: language || 'javascript',
           status: resolvedStatus,
           output: output || '',
         },
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+      });
+    } else {
+      submission = await prisma.submission.create({
+        data: {
+          userId,
+          problemId,
+          code,
+          language: language || 'javascript',
+          status: resolvedStatus,
+          output: output || '',
+        },
+      });
+    }
 
     res.status(200).json({ success: true, submission });
   } catch (err) {
@@ -61,7 +75,7 @@ export const upsertSubmission = async (req, res) => {
   }
 };
 
-// GET /api/submissions/latest?userId=xxx&problemId=yyy — get the latest submission for a user+problem
+// GET /api/submissions/latest?userId=xxx&problemId=yyy
 export const getLatestSubmission = async (req, res) => {
   try {
     const { userId, problemId } = req.query;
@@ -70,7 +84,11 @@ export const getLatestSubmission = async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId and problemId are required' });
     }
 
-    const submission = await Submission.findOne({ userId, problemId });
+    const submission = await prisma.submission.findFirst({
+      where: { userId, problemId },
+      orderBy: { createdAt: 'desc' },
+    });
+
     res.json({ success: true, submission: submission || null });
   } catch (err) {
     console.error('Error fetching latest submission:', err);
@@ -87,13 +105,19 @@ export const getUserSubmissions = async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId is required' });
     }
 
-    const filter = { userId };
-    if (problemId) filter.problemId = problemId;
+    const where = { userId };
+    if (problemId) where.problemId = problemId;
 
-    const submissions = await Submission.find(filter)
-      .populate('problemId', 'title slug difficulty')
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const submissions = await prisma.submission.findMany({
+      where,
+      include: {
+        problem: {
+          select: { title: true, slug: true, difficulty: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
 
     res.json({ success: true, submissions });
   } catch (err) {
@@ -102,7 +126,7 @@ export const getUserSubmissions = async (req, res) => {
   }
 };
 
-// GET /api/submissions/stats?userId=xxx — get solved/attempted counts
+// GET /api/submissions/stats?userId=xxx
 export const getUserStats = async (req, res) => {
   try {
     const { userId } = req.query;
@@ -110,9 +134,18 @@ export const getUserStats = async (req, res) => {
       return res.status(400).json({ success: false, error: 'userId is required' });
     }
 
-    // Get unique solved problem IDs
-    const solvedProblems = await Submission.distinct('problemId', { userId, status: 'Solved' });
-    const attemptedProblems = await Submission.distinct('problemId', { userId });
+    // Count distinct problems solved
+    const solvedProblems = await prisma.submission.findMany({
+      where: { userId, status: 'Solved' },
+      select: { problemId: true },
+      distinct: ['problemId'],
+    });
+
+    const attemptedProblems = await prisma.submission.findMany({
+      where: { userId },
+      select: { problemId: true },
+      distinct: ['problemId'],
+    });
 
     res.json({
       success: true,

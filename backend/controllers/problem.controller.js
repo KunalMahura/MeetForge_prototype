@@ -1,17 +1,26 @@
-import Problem from '../models/Problem.js';
+import prisma from '../config/prisma.js';
 
 // GET /api/problems — list all problems
 export const getAllProblems = async (req, res) => {
   try {
     const { difficulty, tag } = req.query;
-    const filter = {};
 
-    if (difficulty) filter.difficulty = difficulty;
-    if (tag) filter.tags = { $in: [tag] };
+    const where = {};
+    if (difficulty) where.difficulty = difficulty;
+    if (tag) where.tags = { has: tag };
 
-    const problems = await Problem.find(filter)
-      .select('title slug difficulty tags order')
-      .sort({ order: 1 });
+    const problems = await prisma.problem.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        difficulty: true,
+        tags: true,
+        order: true,
+      },
+      orderBy: { order: 'asc' },
+    });
 
     res.json({ success: true, problems });
   } catch (err) {
@@ -23,7 +32,9 @@ export const getAllProblems = async (req, res) => {
 // GET /api/problems/:slug — get a single problem with full details
 export const getProblemBySlug = async (req, res) => {
   try {
-    const problem = await Problem.findOne({ slug: req.params.slug });
+    const problem = await prisma.problem.findUnique({
+      where: { slug: req.params.slug },
+    });
 
     if (!problem) {
       return res.status(404).json({ success: false, error: 'Problem not found' });

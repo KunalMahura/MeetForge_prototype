@@ -1,5 +1,5 @@
 import { Webhook } from 'svix';
-import User from '../models/User.js';
+import prisma from '../config/prisma.js';
 
 export const clerkWebhook = async (req, res) => {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -9,7 +9,6 @@ export const clerkWebhook = async (req, res) => {
     return res.status(500).json({ error: 'Webhook secret missing' });
   }
 
-  // Get headers
   const svix_id = req.headers['svix-id'];
   const svix_timestamp = req.headers['svix-timestamp'];
   const svix_signature = req.headers['svix-signature'];
@@ -44,16 +43,20 @@ export const clerkWebhook = async (req, res) => {
     const name = username || `${first_name || ''} ${last_name || ''}`.trim();
 
     try {
-      await User.findOneAndUpdate(
-        { clerkId: id },
-        { 
+      await prisma.user.upsert({
+        where: { clerkId: id },
+        update: {
+          email,
+          username: name,
+          imageUrl: image_url,
+        },
+        create: {
           clerkId: id,
           email,
           username: name,
-          imageUrl: image_url 
+          imageUrl: image_url,
         },
-        { upsert: true, new: true }
-      );
+      });
       console.log(`User ${id} synced to database`);
     } catch (dbError) {
       console.error('Error updating DB from webhook:', dbError);
@@ -61,8 +64,9 @@ export const clerkWebhook = async (req, res) => {
     }
   } else if (eventType === 'user.deleted') {
     try {
-      await User.findOneAndDelete({ clerkId: id });
+      await prisma.user.delete({ where: { clerkId: id } });
     } catch (dbError) {
+      // User may not exist — not a critical error
       console.error('Error deleting user from DB:', dbError);
     }
   }
